@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 検索エンジンに載らないようにする設定 -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>作品アーカイブ</title>
+  <style>
+    :root {
+      --bg-color: #faf9f6;
+      --text-color: #2c2c2c;
+      --accent-color: #5c6b73;
+      --card-bg: #ffffff;
+      --border-color: #e6e4df;
+    }
+    body {
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.9;
+    }
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 24px 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 0.1em;
+    }
+    header p {
+      margin: 6px 0 0;
+      font-size: 0.85rem;
+      color: #666;
+      font-family: sans-serif;
+    }
+    main {
+      max-width: 720px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+    /* 一覧画面 */
+    .novel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .novel-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .novel-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 0 0 6px;
+    }
+    .novel-meta {
+      font-size: 0.8rem;
+      color: #777;
+      font-family: sans-serif;
+    }
+    .novel-summary {
+      font-size: 0.92rem;
+      margin: 10px 0 0;
+      color: #444;
+    }
+    /* 本文閲覧画面 */
+    #reader-view {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 36px 28px;
+    }
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 24px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-family: sans-serif;
+      color: var(--accent-color);
+      background: transparent;
+      border: 1px solid var(--accent-color);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .back-btn:hover {
+      background: var(--accent-color);
+      color: #fff;
+    }
+    #reader-title {
+      font-size: 1.5rem;
+      margin: 0 0 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+    #reader-date {
+      font-size: 0.8rem;
+      color: #888;
+      font-family: sans-serif;
+      margin-bottom: 28px;
+    }
+    #reader-body p {
+      text-indent: 1em;
+      margin: 0 0 1.2em;
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>書庫 / Novel Archive</h1>
+  <p>URLを知っている方のみ閲覧できる限定公開ページです</p>
+</header>
+
+<main>
+  <!-- 作品一覧 -->
+  <div id="list-view"></div>
+
+  <!-- 作品本文 -->
+  <div id="reader-view">
+    <button class="back-btn" onclick="showList()">← 作品一覧に戻る</button>
+    <h2 id="reader-title"></h2>
+    <div id="reader-date"></div>
+    <div id="reader-body"></div>
+  </div>
+</main>
+
+<script>
+  // ★ここに小説を追加・編集します
+  const novels = [
+    {
+      id: "story-1",
+      title: "第一話：夜汽車の窓から",
+      date: "2026年10月 執筆",
+      summary: "北の街を離れる夜、最終列車の窓に映った景色と記憶についての短編。",
+      content: `
+        <p>ホームに降り積もった雪が、駅の蛍光灯を反射して青白く光っていた。</p>
+        <p>発車のベルが鳴り終わると、重たいドアがゆっくりと閉まる。窓ガラスに映った自分の顔は、少しだけ大人びて見えた。</p>
+        <p>「また春に会おう」と言った友人の声は、もうディーゼルエンジンの音にかき消されていた。</p>
+      `
+    },
+    {
+      id: "story-2",
+      title: "第二話：水面を滑る朝",
+      date: "2026年11月 執筆",
+      summary: "夜明け前の川面と、オールが水を切る音を描いた小品。",
+      content: `
+        <p>午前五時の川面は、まだ誰にも触れられていない鏡のようだった。</p>
+        <p>冷たい空気を肺いっぱいに吸い込み、オールを水面に差し込む。静寂を裂くように、小さな水音が朝霧の中へ広がっていった。</p>
+      `
+    }
+  ];
+
+  const listView = document.getElementById("list-view");
+  const readerView = document.getElementById("reader-view");
+
+  // 一覧を描画
+  function renderList() {
+    listView.innerHTML = novels.map(novel => `
+      <div class="novel-card" onclick="openNovel('${novel.id}')">
+        <h2 class="novel-title">${novel.title}</h2>
+        <div class="novel-meta">${novel.date}</div>
+        <p class="novel-summary">${novel.summary}</p>
+      </div>
+    `).join("");
+  }
+
+  // 小説を開く
+  function openNovel(id) {
+    const novel = novels.find(n => n.id === id);
+    if (!novel) return;
+    document.getElementById("reader-title").textContent = novel.title;
+    document.getElementById("reader-date").textContent = novel.date;
+    document.getElementById("reader-body").innerHTML = novel.content;
+    listView.style.display = "none";
+    readerView.style.display = "block";
+    window.scrollTo(0, 0);
+  }
+
+  // 一覧に戻る
+  function showList() {
+    readerView.style.display = "none";
+    listView.style.display = "block";
+  }
+
+  renderList();
+</script>
+
+</body>
+</html>
